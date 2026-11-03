@@ -33,12 +33,12 @@ Install the pinned dependencies and start the API:
 
 ```bash
 pip install -r requirements.txt
-uvicorn main:app --reload --app-dir backend
+uvicorn main:app --reload --app-dir backend --port 8001
 ```
 
-The API is available at `http://127.0.0.1:8000`. Interactive API documentation
-is at `/docs`; `/api/health` checks service availability and `/api/portfolio`
-returns the validated starter portfolio.
+The API is available at `http://127.0.0.1:8001`. Interactive API documentation
+is at `http://127.0.0.1:8001/docs`; `/api/health` checks service availability
+and `/api/portfolio` returns the validated starter portfolio.
 
 ## Set up the database
 
