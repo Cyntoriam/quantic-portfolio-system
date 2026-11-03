@@ -13,6 +13,7 @@ quantic-portfolio-system/
 │   └── schema.sql
 ├── frontend/
 │   └── index.html
+├── requirements.txt
 └── README.md
 ```
 
@@ -28,9 +29,10 @@ quantic-portfolio-system/
 
 ## Run the API
 
-Install FastAPI and an ASGI server in your Python environment, then run:
+Install the pinned dependencies and start the API:
 
 ```bash
+pip install -r requirements.txt
 uvicorn main:app --reload --app-dir backend
 ```
 
