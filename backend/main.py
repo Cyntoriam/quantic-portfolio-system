@@ -2,13 +2,26 @@
 
 from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from sqlalchemy import Integer, String, Text, text
+from sqlalchemy.orm import Mapped, Session, mapped_column
+
+from backend.database import Base, get_db
 
 app = FastAPI(
-    title="Quantic Portfolio API",
-    description="Validated portfolio content for the Quantic portfolio system.",
+    title="Dr. Cyntoria Meaderds Portfolio API",
+    description="Portfolio and technical certification data backed by PostgreSQL.",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -31,6 +44,29 @@ class Portfolio(BaseModel):
     projects: Annotated[list[Project], Field(max_length=50)]
 
 
+class CertificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str
+    issuer: str
+    score_details: str | None = None
+    description: str
+    badge_image_url: HttpUrl | None = None
+    credential_url: HttpUrl | None = None
+
+
+class CertificationModel(Base):
+    __tablename__ = "certifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    issuer: Mapped[str] = mapped_column(String(100), nullable=False)
+    score_details: Mapped[str | None] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    badge_image_url: Mapped[str | None] = mapped_column(String(255))
+    credential_url: Mapped[str | None] = mapped_column(String(255), unique=True)
+
+
 portfolio = Portfolio(
     name="Your Name",
     role="Independent designer & developer",
@@ -47,6 +83,24 @@ def health_check() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/v1/health")
+def versioned_health_check(db: Session = Depends(get_db)) -> dict[str, str]:
+    db.execute(text("SELECT 1"))
+    return {
+        "status": "healthy",
+        "system": "PostgreSQL & FastAPI Backend Active",
+    }
+
+
 @app.get("/api/portfolio", response_model=Portfolio)
 def get_portfolio() -> Portfolio:
     return portfolio
+
+
+@app.get(
+    "/api/v1/certifications",
+    response_model=list[CertificationResponse],
+    summary="Retrieve Certifications from PostgreSQL",
+)
+def get_certifications(db: Session = Depends(get_db)) -> list[CertificationModel]:
+    return db.query(CertificationModel).order_by(CertificationModel.id).all()

@@ -247,6 +247,23 @@
         --glow: rgb(215 183 107 / 18%);
       }
 
+      .certification-card {
+        min-height: 280px;
+      }
+
+      .certification-badge {
+        position: relative;
+        z-index: 1;
+        width: 76px;
+        height: 76px;
+        margin-bottom: 1.5rem;
+        object-fit: contain;
+      }
+
+      .certification-status {
+        color: var(--muted);
+      }
+
       .project-index {
         color: var(--gold);
         font-size: 0.78rem;
@@ -421,6 +438,7 @@
       <a class="wordmark" href="#home" aria-label="Quantic home">Q.</a>
       <nav aria-label="Main navigation">
         <a href="#work">Selected work</a>
+        <a href="#certifications">Credentials</a>
         <a href="#about">About</a>
         <a href="#contact">Contact</a>
       </nav>
@@ -499,6 +517,20 @@
         </div>
       </section>
 
+      <section class="shell" id="certifications" aria-labelledby="certifications-title">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">Learning in practice</span>
+            <h2 id="certifications-title">Certifications</h2>
+          </div>
+          <p class="section-note">Technical credentials and continued learning.</p>
+        </div>
+        <p class="certification-status" id="certification-status" role="status" aria-live="polite">
+          Loading certifications…
+        </p>
+        <div class="projects" id="certification-list"></div>
+      </section>
+
       <section class="shell about-grid" id="about" aria-labelledby="about-title">
         <div>
           <span class="eyebrow">A little about me</span>
@@ -532,5 +564,93 @@
       <span>© <span id="year">2026</span> Quantic. Made with intention.</span>
       <a href="#home">Back to top ↑</a>
     </footer>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const status = document.getElementById("certification-status");
+        const list = document.getElementById("certification-list");
+
+        try {
+          const response = await fetch("http://127.0.0.1:8001/api/v1/certifications");
+          if (!response.ok) {
+            throw new Error(`Certification API returned HTTP ${response.status}`);
+          }
+
+          const certifications = await response.json();
+          if (!Array.isArray(certifications)) {
+            throw new Error("Certification API returned an invalid response");
+          }
+
+          if (certifications.length === 0) {
+            status.textContent = "No certifications to display yet.";
+            return;
+          }
+
+          certifications.forEach((certification, index) => {
+            const card = document.createElement("article");
+            card.className = "project-card certification-card";
+
+            if (certification.badge_image_url) {
+              const badge = document.createElement("img");
+              badge.className = "certification-badge";
+              badge.src = certification.badge_image_url;
+              badge.alt = `${certification.name} badge`;
+              badge.loading = "lazy";
+              card.append(badge);
+            }
+
+            const content = document.createElement("div");
+            content.className = "project-content";
+
+            const issuer = document.createElement("p");
+            issuer.className = "project-type";
+            issuer.textContent = certification.issuer;
+
+            const name = document.createElement("h3");
+            name.textContent = certification.name;
+
+            const description = document.createElement("p");
+            description.textContent = certification.description;
+
+            content.append(issuer, name, description);
+            card.append(content);
+
+            if (certification.score_details) {
+              const details = document.createElement("div");
+              details.className = "project-tags";
+              const detail = document.createElement("span");
+              detail.textContent = certification.score_details;
+              details.append(detail);
+              card.append(details);
+            }
+
+            if (certification.credential_url) {
+              const link = document.createElement("a");
+              link.className = "button";
+              link.href = certification.credential_url;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              const indicator = document.createElement("span");
+              indicator.textContent = "↗";
+              indicator.setAttribute("aria-hidden", "true");
+              link.append(
+                document.createTextNode("View credential "),
+                indicator,
+              );
+              card.append(link);
+            }
+
+            card.style.setProperty("--glow", index % 2 === 0
+              ? "rgb(215 183 107 / 18%)"
+              : "rgb(237 76 162 / 16%)");
+            list.append(card);
+          });
+
+          status.textContent = "";
+        } catch (error) {
+          console.error("API Connection Error:", error);
+          status.textContent = "Certifications are unavailable right now.";
+        }
+      });
+    </script>
   </body>
 </html>

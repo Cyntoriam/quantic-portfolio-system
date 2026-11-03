@@ -29,3 +29,31 @@ CREATE TABLE contact_messages (
 );
 
 CREATE INDEX contact_messages_created_at_idx ON contact_messages (created_at DESC);
+
+CREATE TABLE certifications (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    issuer VARCHAR(100) NOT NULL,
+    score_details VARCHAR(100),
+    description TEXT NOT NULL,
+    badge_image_url VARCHAR(255),
+    credential_url VARCHAR(255) UNIQUE
+);
+
+INSERT INTO certifications (
+    name,
+    issuer,
+    score_details,
+    description,
+    badge_image_url,
+    credential_url
+)
+VALUES (
+    'AMD ROCm Certified Associate',
+    'AMD',
+    'Issuer: AMD',
+    'Validated foundational knowledge of AMD accelerated computing and HPC application optimization using AMD ROCm™.',
+    'https://images.credly.com/images/b565e2d0-df9c-42c4-bbaf-132a00cd36b9/image.png',
+    'https://www.credly.com/badges/b565e2d0-df9c-42c4-bbaf-132a00cd36b9/public_url'
+)
+ON CONFLICT (credential_url) DO NOTHING;
